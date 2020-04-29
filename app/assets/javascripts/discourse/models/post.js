@@ -406,6 +406,9 @@ Post.reopenClass({
         if (a.actionType.name_key === "like") {
           json.likeAction = actionSummary;
         }
+        if (a.actionType.name_key === "dislike") {
+          json.dislikeAction = actionSummary;
+        }
         return actionSummary;
       });
 

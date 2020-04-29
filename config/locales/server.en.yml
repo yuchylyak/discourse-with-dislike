@@ -913,6 +913,11 @@ en:
       description: "Like this post"
       short_description: "Like this post"
       long_form: "liked this"
+    dislike:
+      title: "Dislike"
+      description: "Dislike this post"
+      short_description: "Dislike this post"
+      long_form: "disliked this"
 
   draft:
     sequence_conflict_error:

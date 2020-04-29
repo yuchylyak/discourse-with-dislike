@@ -7,6 +7,7 @@ import { Promise } from "rsvp";
 import ENV from "discourse-common/config/environment";
 
 const LIKE_ACTION = 2;
+const DISLIKE_ACTION = 9;
 const VIBRATE_DURATION = 5;
 
 function animateHeart($elem, start, end, complete) {
@@ -26,6 +27,30 @@ function animateHeart($elem, start, end, complete) {
             .css("transform", "scale(" + now + ")")
             .addClass("d-liked")
             .removeClass("d-unliked");
+        },
+        duration: 150
+      },
+      "linear"
+    );
+}
+
+function animateThumb($elem, start, end, complete) {
+  if (ENV.environment === "test") {
+    return run(this, complete);
+  }
+
+  $elem
+    .stop()
+    .css("textIndent", start)
+    .animate(
+      { textIndent: end },
+      {
+        complete,
+        step(now) {
+          $(this)
+            .css("transform", "scale(" + now + ")")
+            .addClass("d-disliked")
+            .removeClass("d-undisliked");
         },
         duration: 150
       },
@@ -150,6 +175,72 @@ registerButton("like", attrs => {
 
   return button;
 });
+
+registerButton("dislike-count", dislikeCount);
+
+registerButton("dislike", attrs => {
+  if (!attrs.showDislike) {
+    return dislikeCount(attrs);
+  }
+
+  const className = attrs.disliked
+    ? "toggle-dislike has-dislike fade-out"
+    : "toggle-dislike dislike";
+
+  const button = {
+    action: "dislike",
+    icon: attrs.disliked ? "d-disliked" : "d-undisliked",
+    className,
+    before: "dislike-count"
+  };
+
+  // If the user has already liked the post and doesn't have permission
+  // to undo that operation, then indicate via the title that they've liked it
+  // and disable the button. Otherwise, set the title even if the user
+  // is anonymous (meaning they don't currently have permission to like);
+  // this is important for accessibility.
+  if (attrs.disliked && !attrs.canToggleDislike) {
+    button.title = "post.controls.has_disliked";
+    button.disabled = true;
+  } else {
+    button.title = attrs.disliked
+      ? "post.controls.undo_dislike"
+      : "post.controls.dislike";
+  }
+
+  return button;
+});
+
+function dislikeCount(attrs) {
+  const count = attrs.dislikeCount;
+
+  if (count > 0) {
+    const title = attrs.disliked
+      ? count === 1
+        ? "post.has_dislikes_title_only_you"
+        : "post.has_dislikes_title_you"
+      : "post.has_dislikes_title";
+    let icon = attrs.yours ? "d-disliked" : "";
+    let addContainer = attrs.yours;
+    const additionalClass = attrs.yours ? "my-dislikes" : "regular-dislikes";
+
+    if (!attrs.showDislike) {
+      icon = attrs.yours ? "d-disliked" : "d-undisliked";
+      addContainer = true;
+    }
+
+    return {
+      action: "toggleWhoDisliked",
+      title,
+      className: `button-count dislike-count highlight-action ${additionalClass}`,
+      contents: count,
+      icon,
+      iconRight: true,
+      addContainer,
+      titleOptions: { count: attrs.disliked ? count - 1 : count }
+    };
+  }
+}
 
 registerButton("flag-count", attrs => {
   let className = "button-count";
@@ -417,6 +508,7 @@ export default createWidget("post-menu", {
     return {
       collapsed: true,
       likedUsers: [],
+      dislikedUsers: [],
       readers: [],
       adminVisible: false
     };
@@ -459,6 +551,14 @@ export default createWidget("post-menu", {
       if (likedPostId === attrs.id) {
         keyValueStore.remove("likedPostId");
         next(() => this.sendWidgetAction("toggleLike"));
+      }
+    }
+
+    if (currentUser && keyValueStore) {
+      const dislikedPostId = keyValueStore.getInt("dislikedPostId");
+      if (dislikedPostId === attrs.id) {
+        keyValueStore.remove("dislikedPostId");
+        next(() => this.sendWidgetAction("toggleDislike"));
       }
     }
 
@@ -619,6 +719,25 @@ export default createWidget("post-menu", {
       );
     }
 
+    if (state.dislikedUsers.length) {
+      const remaining = state.total - state.dislikedUsers.length;
+      const description =
+        remaining > 0
+          ? "post.actions.people.dislike_capped"
+          : "post.actions.people.dislike";
+      const count = remaining > 0 ? remaining : state.total;
+
+      contents.push(
+        this.attach("small-user-list", {
+          users: state.dislikedUsers,
+          addSelf: attrs.disliked && remaining === 0,
+          listClassName: "who-disliked",
+          description,
+          count
+        })
+      );
+    }
+
     return contents;
   },
 
@@ -641,6 +760,16 @@ export default createWidget("post-menu", {
       : Promise.resolve();
 
     return likesPromise.then(() => {
+      if (!this.state.readers.length && this.attrs.showReadIndicator) {
+        return this.getWhoRead();
+      }
+    });
+
+    const dislikesPromise = !this.state.dislikedUsers.length
+      ? this.getWhoDisliked()
+      : Promise.resolve();
+
+    return dislikesPromise.then(() => {
       if (!this.state.readers.length && this.attrs.showReadIndicator) {
         return this.getWhoRead();
       }
@@ -677,9 +806,45 @@ export default createWidget("post-menu", {
     });
   },
 
+  dislike() {
+    const { attrs, currentUser, keyValueStore } = this;
+
+    if (!currentUser) {
+      keyValueStore &&
+        keyValueStore.set({ key: "dislikedPostId", value: attrs.id });
+      return this.sendWidgetAction("showLogin");
+    }
+
+    if (this.capabilities.canVibrate) {
+      navigator.vibrate(VIBRATE_DURATION);
+    }
+
+    if (attrs.disliked) {
+      return this.sendWidgetAction("toggleDislike");
+    }
+
+    const $thumb = $(`[data-post-id=${attrs.id}] .toggle-dislike .d-icon`);
+    $thumb.closest("button").addClass("has-dislike");
+
+    const scale = [1.0, 1.5];
+    return new Promise(resolve => {
+      animateThumb($thumb, scale[0], scale[1], () => {
+        animateThumb($thumb, scale[1], scale[0], () => {
+          this.sendWidgetAction("toggleDislike").then(() => resolve());
+        });
+      });
+    });
+  },
+
   refreshLikes() {
     if (this.state.likedUsers.length) {
       return this.getWhoLiked();
+    }
+  },
+
+  refreshDislikes() {
+    if (this.state.dislikedUsers.length) {
+      return this.getWhoDisliked();
     }
   },
 
@@ -703,6 +868,20 @@ export default createWidget("post-menu", {
       });
   },
 
+  getWhoDisliked() {
+    const { attrs, state } = this;
+
+    return this.store
+      .find("post-action-user", {
+        id: attrs.id,
+        post_action_type_id: DISLIKE_ACTION
+      })
+      .then(users => {
+        state.dislikedUsers = users.map(avatarAtts);
+        state.total = users.totalRows;
+      });
+  },
+
   getWhoRead() {
     const { attrs, state } = this;
 
@@ -718,6 +897,15 @@ export default createWidget("post-menu", {
       state.likedUsers = [];
     } else {
       return this.getWhoLiked();
+    }
+  },
+
+  toggleWhoDisliked() {
+    const state = this.state;
+    if (state.dislikedUsers.length) {
+      state.dislikedUsers = [];
+    } else {
+      return this.getWhoDisliked();
     }
   },
 

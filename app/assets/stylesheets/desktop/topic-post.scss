@@ -72,7 +72,9 @@ nav.post-controls {
       margin-left: 0;
       margin-right: 0;
       &.my-likes,
+      &.my-dislikes,
       &.read-indicator,
+      &.regular-dislikes,
       &.regular-likes {
         // Like count on posts
         .d-icon {
@@ -89,10 +91,31 @@ nav.post-controls {
           }
         }
       }
+      &.dislike {
+        // Like button with 0 dislikes
+        &.d-hover {
+          background: $love-low;
+          .d-icon {
+            color: red;
+          }
+        }
+      }
       &.has-like {
         // Like button after I've liked
         .d-icon {
           color: $love;
+        }
+        &.d-hover {
+          background: $primary-low;
+          .d-icon {
+            color: $primary-medium;
+          }
+        }
+      }
+      &.has-dislike {
+        // Dislike button after I've disliked
+        .d-icon {
+          color: red;
         }
         &.d-hover {
           background: $primary-low;
@@ -133,6 +156,10 @@ nav.post-controls {
     display: inline-block;
   }
   a.toggle-likes {
+    padding: 8px 0;
+    margin-right: -3px;
+  }
+  a.toggle-dislikes {
     padding: 8px 0;
     margin-right: -3px;
   }

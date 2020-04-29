@@ -185,6 +185,23 @@ createWidget("topic-map-summary", {
         ])
       );
     }
+    
+    if (attrs.topicDislikeCount) {
+      contents.push(
+        h("li.secondary.dislikes", [
+          numberNode(attrs.topicDislikeCount),
+          h(
+            "h4",
+            {
+              attributes: { role: "presentation" }
+            },
+            I18n.t("dislikes_lowercase", {
+              count: attrs.topicDislikeCount
+            }).toString()
+          )
+        ])
+      );
+    }
 
     if (attrs.topicLinkLength > 0) {
       contents.push(

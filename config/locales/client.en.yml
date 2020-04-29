@@ -2525,6 +2525,15 @@ en:
         one: "you and %{count} other person liked this post"
         other: "you and {{count}} other people liked this post"
 
+      has_dislikes_title:
+        one: "%{count} person disliked this post"
+        other: "{{count}} people disliked this post"
+
+      has_dislikes_title_only_you: "you disliked this post"
+      has_dislikes_title_you:
+        one: "you and %{count} other person disliked this post"
+        other: "you and {{count}} other people disliked this post"
+
       errors:
         create: "Sorry, there was an error creating your post. Please try again."
         edit: "Sorry, there was an error editing your post. Please try again."
@@ -2564,9 +2573,12 @@ en:
       controls:
         reply: "begin composing a reply to this post"
         like: "like this post"
+        dislike: "dislike this post"
         has_liked: "you've liked this post"
+        has_disliked: "you've disliked this post"
         read_indicator: "members who read this post"
         undo_like: "undo like"
+        undo_dislike: "undo dislike"
         edit: "edit this post"
         edit_action: "Edit"
         edit_anonymous: "Sorry, but you need to be logged in to edit this post."
@@ -2615,6 +2627,7 @@ en:
           inappropriate: "Undo flag"
           bookmark: "Undo bookmark"
           like: "Undo like"
+          dislike: "Undo dislike"
         people:
           off_topic: "flagged this as off-topic"
           spam: "flagged this as spam"
@@ -2625,12 +2638,18 @@ en:
           like:
             one: "liked this"
             other: "liked this"
+          dislike:
+            one: "disliked this"
+            other: "disliked this"
           read:
             one: "read this"
             other: "read this"
           like_capped:
             one: "and {{count}} other liked this"
             other: "and {{count}} others liked this"
+          dislike_capped:
+            one: "and {{count}} other disliked this"
+            other: "and {{count}} others disliked this"
           read_capped:
             one: "and {{count}} other read this"
             other: "and {{count}} others read this"
@@ -2642,6 +2661,7 @@ en:
           notify_user: "You sent a message to this user"
           bookmark: "You bookmarked this post"
           like: "You liked this"
+          dislike: "You disliked this"
 
       delete:
         confirm:
@@ -2810,6 +2830,8 @@ en:
         default: "default"
         likes: "Likes"
         op_likes: "Original Post Likes"
+        dislikes: "Dislikes"
+        op_dislikes: "Original Post Dislikes"
         views: "Views"
         posts: "Posts"
         activity: "Activity"

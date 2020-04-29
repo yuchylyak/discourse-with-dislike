@@ -206,6 +206,14 @@
       font-size: $font-down-1;
     }
   }
+  
+  .dislike-count {
+    color: dark-light-choose($primary-medium, $secondary-medium);
+    .fa {
+      color: red;
+      font-size: $font-down-1;
+    }
+  }
 
   .badge-wrapper span.badge-category {
     max-width: inherit;

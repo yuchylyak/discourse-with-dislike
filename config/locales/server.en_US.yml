@@ -23,3 +23,9 @@ en_US:
     <<: *datetime_formats
   time:
     <<: *datetime_formats
+  post:
+    dislike:
+      title: "Dislike"
+      description: "Dislike this post"
+      short_description: "Dislike this post"
+      long_form: "disliked this"

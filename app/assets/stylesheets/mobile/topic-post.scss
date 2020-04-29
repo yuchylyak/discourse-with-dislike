@@ -38,6 +38,7 @@ span.badge-posts {
       flex: 0 1 auto;
       button {
         &.like,
+        &.dislike,
         &.read-indicator,
         &.create-flag {
           flex: 1 1 auto;
@@ -45,10 +46,13 @@ span.badge-posts {
         &.button-count {
           padding: s(2 1 2 2);
           + .toggle-like,
+          + .toggle-dislike,
           + .create-flag {
             padding: s(2 2 2 1);
           }
           &.my-likes,
+          &.my-dislikes,
+          &.regular-dislikes,
           &.regular-likes {
             display: flex;
             max-width: unset;
@@ -88,6 +92,11 @@ span.badge-posts {
       &.has-like {
         .d-icon {
           color: $love;
+        }
+      }
+      &.has-dislike {
+        .d-icon {
+          color: red;
         }
       }
       &.bookmarked {
@@ -274,6 +283,8 @@ a.reply-to-tab {
   td.views,
   td.activity,
   th.activity,
+  th.dislikes,
+  td.dislikes,
   th.likes,
   td.likes {
     display: none;

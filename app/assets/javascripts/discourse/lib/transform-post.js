@@ -66,6 +66,10 @@ export function transformBasicPost(post) {
     liked: false,
     canToggleLike: false,
     likeCount: false,
+    showDislike: false,
+    disliked: false,
+    canToggleDislike: false,
+    dislikeCount: false,
     actionsSummary: null,
     read: post.read,
     replyToUsername: null,
@@ -178,6 +182,7 @@ export default function transformPost(
 
     postAtts.participantCount = topic.participant_count;
     postAtts.topicLikeCount = topic.like_count;
+    postAtts.topicDislikeCount = topic.dislike_count;
     postAtts.topicLinks = details.links;
     if (postAtts.topicLinks) {
       postAtts.topicLinkLength = details.links.length;
@@ -234,6 +239,18 @@ export default function transformPost(
 
   if (!currentUser) {
     postAtts.showLike = !topic.archived;
+  }
+
+  const dislikeAction = post.dislikeAction;
+  if (dislikeAction) {
+    postAtts.disliked = dislikeAction.acted;
+    postAtts.canToggleDislike = dislikeAction.get("canToggle");
+    postAtts.showDislike = postAtts.disliked || postAtts.canToggleDislike;
+    postAtts.dislikeCount = dislikeAction.count;
+  }
+
+  if (!currentUser) {
+    postAtts.showDislike = !topic.archived;
   }
 
   if (postAtts.post_number === 1) {

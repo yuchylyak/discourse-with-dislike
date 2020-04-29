@@ -720,6 +720,18 @@ export default createWidget("post", {
       });
     }
   },
+  
+  toggleDislike() {
+    const post = this.model;
+    const dislikeAction = post.get("dislikeAction");
+
+    if (dislikeAction && dislikeAction.get("canToggle")) {
+      return dislikeAction.togglePromise(post).then(result => {
+        this.appEvents.trigger("page:dislike-toggled", post, dislikeAction);
+        return this._warnIfClose(result);
+      });
+    }
+  },
 
   _warnIfClose(result) {
     if (!result || !result.acted) {
